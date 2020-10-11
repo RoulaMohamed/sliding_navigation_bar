@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sliding_navigation_bar/custom_tab.dart';
 import 'package:sliding_navigation_bar/sliding_navigation_bar.dart';
 
 void main() => runApp(MyApp());
@@ -7,11 +8,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Flutter BottomNavigationBar Package',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'HomePage'),
     );
   }
 }
@@ -27,26 +28,23 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-
       bottomNavigationBar: SlidingNavigationBar(
+        barBackgroundColor: Colors.grey[100],
         inactiveIconColor: Colors.black,
-        activeIconColor: Colors.white,
+        activeIconColor: Colors.deepOrange,
         tabs: [
-          TabData(iconData: Icons.perm_identity, title: "", ),
-          TabData(iconData: Icons.search, title: ""),
-          TabData(iconData: Icons.add, title: ""),
-          TabData(iconData: Icons.shopping_cart, title: ""),
-          TabData(iconData: Icons.settings, title: "")
+          TabData(iconData: Icons.perm_identity),
+          TabData(iconData: Icons.search),
+          TabData(iconData: Icons.add),
+          TabData(iconData: Icons.shopping_cart),
+          TabData(iconData: Icons.settings)
         ],
         onTabChangedListener: (position) {
-          setState(() {
-
-          });
+          setState(() {});
         },
       ),
       body: Container(

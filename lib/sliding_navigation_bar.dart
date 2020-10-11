@@ -11,6 +11,7 @@ const double SHADOW_ALLOWANCE = 20;
 const double BAR_HEIGHT = 60;
 const int ANIM_DURATION = 300;
 double blockSize = 100;
+Color blockColorGlobal;
 
 class SlidingNavigationBar extends StatefulWidget {
   SlidingNavigationBar(
@@ -22,16 +23,18 @@ class SlidingNavigationBar extends StatefulWidget {
       this.activeIconColor,
       this.inactiveIconColor,
       this.textColor,
+      this.blockColor,
       this.barBackgroundColor})
       : assert(onTabChangedListener != null),
         assert(tabs != null),
-        assert(tabs.length > 1 && tabs.length <= 5);
+        assert(tabs.length > 1 && tabs.length < 6);
 
   final Function(int position) onTabChangedListener;
   final Color circleColor;
   final Color activeIconColor;
   final Color inactiveIconColor;
   final Color textColor;
+  final Color blockColor;
   final Color barBackgroundColor;
   final List<TabData> tabs;
   final int initialSelection;
@@ -41,8 +44,8 @@ class SlidingNavigationBar extends StatefulWidget {
   _SlidingNavigationBar createState() => _SlidingNavigationBar();
 }
 
-class _SlidingNavigationBar extends State<SlidingNavigationBar> with TickerProviderStateMixin, RouteAware {
-
+class _SlidingNavigationBar extends State<SlidingNavigationBar>
+    with TickerProviderStateMixin, RouteAware {
   IconData nextIcon = Icons.search;
   IconData activeIcon = Icons.search;
 
@@ -50,6 +53,7 @@ class _SlidingNavigationBar extends State<SlidingNavigationBar> with TickerProvi
   double _circleAlignX = -1;
   double _circleIconAlpha = 1;
 
+  Color blockColor;
   Color circleColor;
   Color activeIconColor;
   Color inactiveIconColor;
@@ -63,6 +67,9 @@ class _SlidingNavigationBar extends State<SlidingNavigationBar> with TickerProvi
 
     activeIcon = widget.tabs[currentSelected].iconData;
 
+    blockColor = (widget.blockColor == null) ? Colors.black : widget.blockColor;
+    blockColorGlobal = blockColor;
+
     circleColor = (widget.circleColor == null)
         ? (Theme.of(context).brightness == Brightness.dark)
             ? Colors.white
@@ -75,11 +82,7 @@ class _SlidingNavigationBar extends State<SlidingNavigationBar> with TickerProvi
             : Colors.white
         : widget.activeIconColor;
 
-    barBackgroundColor = (widget.barBackgroundColor == null)
-        ? (Theme.of(context).brightness == Brightness.dark)
-            ? Color(0xFF212121)
-            : Colors.white
-        : widget.barBackgroundColor;
+    barBackgroundColor = (widget.barBackgroundColor);
     textColor = (widget.textColor == null)
         ? (Theme.of(context).brightness == Brightness.dark)
             ? Colors.white
@@ -114,84 +117,77 @@ class _SlidingNavigationBar extends State<SlidingNavigationBar> with TickerProvi
   ///////////////////
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(top: 0),
-      child: Stack(
-        overflow: Overflow.visible,
-        alignment: Alignment.bottomCenter,
-        children: <Widget>[
-          //////////////
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              height: 72,
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                //borderRadius: Radius.circular(100),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black12, offset: Offset(0, -1), blurRadius: 8)
-                ],
-              ),
-              child: Stack(
-                children: <Widget>[
-
-
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: AnimatedAlign(
-                      duration: Duration(milliseconds: ANIM_DURATION),
-                      curve: Curves.easeOut,
-                      //curve: Curves.easeInOutQuad,
-                      alignment: Alignment(_circleAlignX, 1),
-                      child: FractionallySizedBox(
-                        widthFactor: 1 / widget.tabs.length,
-                        child: GestureDetector(
-                          onTap: widget.tabs[currentSelected].onclick,
-                          child: Container(
-                            height: 50,
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            //child: CustomPaint(
-                              //painter: customBlock(),
-                            //),
-                          ),
+    return Stack(
+      overflow: Overflow.visible,
+      alignment: Alignment.bottomCenter,
+      children: <Widget>[
+        //////////////
+        Container(
+          height: 72,
+          decoration: BoxDecoration(
+            color: barBackgroundColor,
+            //borderRadius: Radius.circular(100),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black12, offset: Offset(0, -1), blurRadius: 8)
+            ],
+          ),
+          child: Stack(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: AnimatedAlign(
+                  duration: Duration(milliseconds: ANIM_DURATION),
+                  curve: Curves.easeOut,
+                  //curve: Curves.easeInOutQuad,
+                  alignment: Alignment(_circleAlignX, 1),
+                  child: FractionallySizedBox(
+                    widthFactor: 1 / widget.tabs.length,
+                    child: GestureDetector(
+                      onTap: widget.tabs[currentSelected].onclick,
+                      child: Container(
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: blockColor,
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        //child: CustomPaint(
+                        //painter: customBlock(),
+                        //),
                       ),
                     ),
                   ),
-
-                  //////////---------------
-
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: widget.tabs.map((t) => CustomTab(
-                            uniqueKey: t.key,
-                            selected: t.key == widget.tabs[currentSelected].key,
-                            iconData: t.iconData,
-                            title: t.title,
-                            iconColor: inactiveIconColor,
-                            textColor: textColor,
-                            callbackFunction: (uniqueKey) {
-                              int selected = widget.tabs.indexWhere((tabData)
-                              => tabData.key == uniqueKey);
-                              widget.onTabChangedListener(selected);
-                              _setSelected(uniqueKey);
-                              _initAnimationAndStart(_circleAlignX, 1);
-                            }))
-                        .toList(),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-          /////////////
 
-        ],
-      ),
+              //////////---------------
+
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: widget.tabs
+                    .map((t) => CustomTab(
+                        uniqueKey: t.key,
+                        selected: t.key == widget.tabs[currentSelected].key,
+                        iconData: t.iconData,
+                        title: (t.title == null) ? '' : t.title,
+                        iconColorActive: activeIconColor,
+                        iconColorInactive: inactiveIconColor,
+                        textColor: textColor,
+                        callbackFunction: (uniqueKey) {
+                          int selected = widget.tabs.indexWhere(
+                              (tabData) => tabData.key == uniqueKey);
+                          widget.onTabChangedListener(selected);
+                          _setSelected(uniqueKey);
+                          _initAnimationAndStart(_circleAlignX, 1);
+                        }))
+                    .toList(),
+              ),
+            ],
+          ),
+        ),
+        /////////////
+      ],
     );
   }
 
@@ -228,7 +224,7 @@ class customBlock extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.fill
       ..strokeWidth = 5.0
-      ..color = Colors.black;
+      ..color = blockColorGlobal;
 
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -244,8 +240,11 @@ class customBlock extends CustomPainter {
 }
 
 class TabData {
-  TabData({@required this.iconData, @required this.title, this.onclick});
-
+  TabData({
+    @required this.iconData,
+    this.title,
+    this.onclick,
+  });
   IconData iconData;
   String title;
   Function onclick;
