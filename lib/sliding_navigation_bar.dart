@@ -3,12 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:sliding_navigation_bar/custom_tab.dart';
 
-const double CIRCLE_SIZE = 100;
-const double ARC_HEIGHT = 70;
-const double ARC_WIDTH = 90;
-const double CIRCLE_OUTLINE = 10;
-const double SHADOW_ALLOWANCE = 20;
-const double BAR_HEIGHT = 60;
 const int ANIM_DURATION = 300;
 double blockSize = 100;
 Color blockColorGlobal;
@@ -19,7 +13,6 @@ class SlidingNavigationBar extends StatefulWidget {
       @required this.onTabChangedListener,
       this.key,
       this.initialSelection = 0,
-      this.circleColor,
       this.activeIconColor,
       this.inactiveIconColor,
       this.textColor,
@@ -30,7 +23,6 @@ class SlidingNavigationBar extends StatefulWidget {
         assert(tabs.length > 1 && tabs.length < 6);
 
   final Function(int position) onTabChangedListener;
-  final Color circleColor;
   final Color activeIconColor;
   final Color inactiveIconColor;
   final Color textColor;
@@ -50,11 +42,9 @@ class _SlidingNavigationBar extends State<SlidingNavigationBar>
   IconData activeIcon = Icons.search;
 
   int currentSelected = 0;
-  double _circleAlignX = -1;
-  double _circleIconAlpha = 1;
+  double _blockAlignX = -1;
 
   Color blockColor;
-  Color circleColor;
   Color activeIconColor;
   Color inactiveIconColor;
   Color barBackgroundColor;
@@ -69,12 +59,6 @@ class _SlidingNavigationBar extends State<SlidingNavigationBar>
 
     blockColor = (widget.blockColor == null) ? Colors.black : widget.blockColor;
     blockColorGlobal = blockColor;
-
-    circleColor = (widget.circleColor == null)
-        ? (Theme.of(context).brightness == Brightness.dark)
-            ? Colors.white
-            : Theme.of(context).primaryColor
-        : widget.circleColor;
 
     activeIconColor = (widget.activeIconColor == null)
         ? (Theme.of(context).brightness == Brightness.dark)
@@ -103,12 +87,12 @@ class _SlidingNavigationBar extends State<SlidingNavigationBar>
 
   _setSelected(UniqueKey key) {
     int selected = widget.tabs.indexWhere((tabData) => tabData.key == key);
-    blockSize = _circleAlignX * 2;
+    blockSize = _blockAlignX * 2;
 
     if (mounted) {
       setState(() {
         currentSelected = selected;
-        _circleAlignX = -1 + (2 / (widget.tabs.length - 1) * selected);
+        _blockAlignX = -1 + (2 / (widget.tabs.length - 1) * selected);
         nextIcon = widget.tabs[selected].iconData;
       });
     }
@@ -140,7 +124,7 @@ class _SlidingNavigationBar extends State<SlidingNavigationBar>
                   duration: Duration(milliseconds: ANIM_DURATION),
                   curve: Curves.easeOut,
                   //curve: Curves.easeInOutQuad,
-                  alignment: Alignment(_circleAlignX, 1),
+                  alignment: Alignment(_blockAlignX, 1),
                   child: FractionallySizedBox(
                     widthFactor: 1 / widget.tabs.length,
                     child: GestureDetector(
@@ -179,7 +163,6 @@ class _SlidingNavigationBar extends State<SlidingNavigationBar>
                               (tabData) => tabData.key == uniqueKey);
                           widget.onTabChangedListener(selected);
                           _setSelected(uniqueKey);
-                          _initAnimationAndStart(_circleAlignX, 1);
                         }))
                     .toList(),
               ),
@@ -191,26 +174,9 @@ class _SlidingNavigationBar extends State<SlidingNavigationBar>
     );
   }
 
-  _initAnimationAndStart(double from, double to) {
-    _circleIconAlpha = 0;
-
-    Future.delayed(Duration(milliseconds: ANIM_DURATION ~/ 5), () {
-      setState(() {
-        activeIcon = nextIcon;
-      });
-    }).then((_) {
-      Future.delayed(Duration(milliseconds: (ANIM_DURATION ~/ 5 * 3)), () {
-        setState(() {
-          _circleIconAlpha = 1;
-        });
-      });
-    });
-  }
-
   void setPage(int page) {
     widget.onTabChangedListener(page);
     _setSelected(widget.tabs[page].key);
-    _initAnimationAndStart(_circleAlignX, 1);
 
     setState(() {
       currentSelected = page;
